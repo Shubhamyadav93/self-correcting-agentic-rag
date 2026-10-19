@@ -1,7 +1,27 @@
+# Virtual Environment
 venv/
+backend/venv/
+
+# Python Cache & Bytecode
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
+
+# Environment Keys
 .env
+backend/.env
+
+# Databases & Generated Storage
 chroma_db/
+backend/data/chroma_db/
+*.db
+backend/data/*.db
+backend/data/*.sqlite3
+
+# macOS System Files
 .DS_Store
 
+backend/data/raw_documents/*.pdf 
+
+.vscode/
