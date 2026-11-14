@@ -9,6 +9,14 @@ from app.agent.nodes.node3_generator import generate_node
 from app.agent.nodes.node4_hallucination import hallucination_node
 from app.agent.nodes.node5_reformulator import reformulate_node
 from app.agent.nodes.node6_web_search import web_search_node
+from app.agent.nodes.node0_router import domain_router_node
+
+def route_by_domain(state: GraphState) -> str:
+    """Conditional Edge: Routes medical queries to retriever, rejects non-medical queries."""
+    if state.get("is_medical", True):
+        return "retrieve"
+    print("--> Routing: Non-medical query rejected -> END")
+    return "reject"
 
 
 def decide_to_generate(state: GraphState) -> str:
@@ -48,6 +56,7 @@ def build_medical_agent():
     workflow = StateGraph(GraphState)
 
     # Register Nodes
+    workflow.add_node("domain_router", domain_router_node)
     workflow.add_node("retrieve", retrieve_node)
     workflow.add_node("grade_documents", grade_documents_node)
     workflow.add_node("generate", generate_node)
@@ -56,7 +65,17 @@ def build_medical_agent():
     workflow.add_node("web_search", web_search_node)
 
     # Entry point
-    workflow.set_entry_point("retrieve")
+    workflow.set_entry_point("domain_router")
+    workflow.add_conditional_edges(
+        "domain_router",
+        route_by_domain,
+        {
+            "retrieve": "retrieve",
+            "reject": END,
+        },
+    )
+
+
 
     # Connect Edges
     workflow.add_edge("retrieve", "grade_documents")
