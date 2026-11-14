@@ -21,5 +21,7 @@ class GraphState(TypedDict):
     web_search_needed: bool
     hallucination_grade: Optional[str]
     answer_grade: Optional[str]
-    retry_count: int
+    retry_count: int 
+    is_medical: Optional[bool] 
+    
 
