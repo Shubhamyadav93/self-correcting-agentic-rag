@@ -4,20 +4,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.session import init_db
-from app.api import routes_chat, routes_ingest, routes_metrics
+from app.api import routes_chat, routes_ingest, routes_metrics, routes_triage, routes_auth
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize SQLite database tables on startup
+    # Initialize SQLite database tables & seed doctor profiles on startup
     init_db()
     yield
 
 
 app = FastAPI(
-    title="Self-Correcting Medical RAG Agent API",
+    title="ClinGuard Telehealth API",
     version="1.0.0",
-    description="FastAPI Backend for Self-Correcting Clinical Guidelines RAG Agent",
+    description="FastAPI Backend for ClinGuard Telehealth • Verified Clinical AI & Telemedicine Platform",
     lifespan=lifespan,
 )
 
@@ -31,15 +31,17 @@ app.add_middleware(
 )
 
 # Register Modular API Routers
+app.include_router(routes_auth.router)
 app.include_router(routes_chat.router)
 app.include_router(routes_ingest.router)
 app.include_router(routes_metrics.router)
+app.include_router(routes_triage.router)
 
 
 # --- Health Endpoints ---
 @app.get("/", tags=["Health"])
 def root():
-    return {"status": "active", "service": "Self-Correcting Medical RAG API"}
+    return {"status": "active", "service": "ClinGuard Telehealth API"}
 
 
 @app.get("/health", tags=["Health"])

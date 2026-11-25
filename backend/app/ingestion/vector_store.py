@@ -11,18 +11,20 @@ from app.ingestion.embeddings import get_embedding_model
 def create_vector_store(
     chunks: List[Document],
     persist_directory: str = "./data/chroma_db",
-    collection_name: str = "medical_guidelines"
+    collection_name: str = "medical_guidelines",
+    batch_size: int = 64
 ) -> Optional[Chroma]:
     """
-    Indexes text chunks using the embedding model and persists them into ChromaDB.
+    Indexes text chunks using the cached embedding model and persists them into ChromaDB in batches.
 
     Args:
         chunks (List[Document]): List of chunked Document objects.
         persist_directory (str): Local path where ChromaDB persists data.
         collection_name (str): Name of the collection in ChromaDB.
+        batch_size (int): Batch size for indexing chunks into ChromaDB.
 
     Returns:
-        Optional[Chroma]: Created Chroma vector store instance, or None if chunks list is empty.
+        Optional[Chroma]: Created or updated Chroma vector store instance, or None if chunks list is empty.
     """
     if not chunks:
         print("[WARN] No chunks provided to create vector store.")
@@ -30,15 +32,18 @@ def create_vector_store(
 
     embeddings = get_embedding_model()
 
-    print(f"[INFO] Indexing {len(chunks)} chunks into ChromaDB...")
-    vector_store = Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
+    print(f"[INFO] Indexing {len(chunks)} chunks into ChromaDB (batch_size={batch_size})...")
+    vector_store = Chroma(
         persist_directory=persist_directory,
+        embedding_function=embeddings,
         collection_name=collection_name
     )
 
-    print(f"[SUCCESS] Vector store successfully created at: {persist_directory}")
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i : i + batch_size]
+        vector_store.add_documents(documents=batch)
+
+    print(f"[SUCCESS] Vector store successfully created/updated at: {persist_directory}")
     return vector_store
 
 
@@ -71,7 +76,8 @@ def load_vector_store(
 
 def run_ingestion_pipeline(
     pdf_dir: str = "./data/raw_documents",
-    db_dir: str = "./data/chroma_db"
+    db_dir: str = "./data/chroma_db",
+    batch_size: int = 64
 ) -> Optional[Chroma]:
     """
     Orchestrates the entire ingestion pipeline:
@@ -80,6 +86,7 @@ def run_ingestion_pipeline(
     Args:
         pdf_dir (str): Directory containing source PDF documents.
         db_dir (str): Directory to persist the Chroma database.
+        batch_size (int): Batch size for Chroma indexing.
 
     Returns:
         Optional[Chroma]: Populated Chroma vector store instance, or None if any step fails.
@@ -98,8 +105,8 @@ def run_ingestion_pipeline(
         print("[ERROR] Text splitting failed. Ingestion pipeline aborted.")
         return None
 
-    # Step 3: Embed and persist chunks into ChromaDB
-    vector_store = create_vector_store(chunks=chunks, persist_directory=db_dir)
+    # Step 3: Embed and persist chunks into ChromaDB in batches
+    vector_store = create_vector_store(chunks=chunks, persist_directory=db_dir, batch_size=batch_size)
 
     print("========== INGESTION PIPELINE COMPLETED ==========\n")
     return vector_store
@@ -107,4 +114,3 @@ def run_ingestion_pipeline(
 
 if __name__ == "__main__":
     run_ingestion_pipeline()
-

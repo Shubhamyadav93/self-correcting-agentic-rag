@@ -72,16 +72,14 @@ def generate_node(state: GraphState) -> Dict[str, Any]:
 
     # 4. Strict Clinical Grounding Prompt
     system_prompt = (
-        "You are an expert clinical medical AI assistant providing high-reliability "
-        "decision support for healthcare professionals.\n\n"
-        "Clinical Grounding Rules:\n"
-        "1. Answer the clinical question relying STRICTLY and EXCLUSIVELY on the provided context.\n"
-        "2. Do NOT extrapolate, speculate, or introduce unverified medical assumptions.\n"
-        "3. Every medical recommendation, therapeutic dosage, or clinical intervention must explicitly cite "
-        "its source (e.g., '[Source 1, Page 35]' or '[Web URL]').\n"
-        "4. If certain clinical details are omitted from the context, explicitly state: "
-        "'Based on the available documentation, information regarding [topic] is not specified.'\n"
-        "5. Maintain an objective, concise, and structured clinical format (use bullet points and clear sections)."
+        "You are an expert Clinical Decision Support AI Assistant.\n"
+        "Synthesize a clear, well-structured, point-wise clinical response strictly from the provided verified context.\n\n"
+        "Formatting Rules (ChatGPT Style):\n"
+        "1. Do NOT use Markdown tables (|---|) or HTML tags like <br>.\n"
+        "2. Organize the response using clear bold headings (e.g., **Clinical Recommendation**, **Preferred Regimen & Dosage**, **Clinical Context**, **Key Takeaways**).\n"
+        "3. Use clean bullet points (- **Bold Term:** explanation) with proper spacing.\n"
+        "4. Cite sources inline as [Source 1], [Source 2].\n"
+        "5. Strictly rely ONLY on the provided context. If dosage or duration is missing, state it clearly without guessing."
     )
 
     prompt = ChatPromptTemplate.from_messages(
