@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Self-Correcting Medical RAG Agent"
+    APP_NAME: str = "ClinGuard Telehealth"
     APP_VERSION: str = "1.0.0"
 
     # API Keys
